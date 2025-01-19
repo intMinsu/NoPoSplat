@@ -1,0 +1,86 @@
+[project]
+name = "NoPoSplat"
+channels = ["pytorch", "nvidia", "conda-forge", "nvidia/label/cuda-12.4.0"]
+description = "A pixi.toml for AI development"
+authors = ["intMinsu <minsurcv@gmail.com>"]
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[system-requirements]
+linux="5.4.0"
+
+[activation]
+scripts = ["scripts/update_ld_library_path.sh"]
+
+[dependencies]
+
+[feature.py310.dependencies]
+python = "3.10.*"
+pip = {channel = "conda-forge", version = "*"}
+numpy = {channel = "conda-forge", version = "*"}
+pandas = {channel = "conda-forge", version = "*"}
+jupyterlab = {channel = "conda-forge", version = "*"}
+
+[feature.torch241cu124.dependencies]
+pytorch =  {channel = "pytorch", version = "==2.4.1"}
+pytorch-cuda = {channel = "pytorch", version = "==12.4"}
+cuda = {channel = "nvidia/label/cuda-12.4.0", version = "*"}
+cudnn = {channel = "conda-forge", version = "9.*"}
+torchvision = {channel = "pytorch", version = "==0.19.1"}
+torchaudio = {channel = "pytorch", version = "==2.4.1"}
+pytorch-lightning = {channel = "conda-forge", version="*"}
+
+[feature.ropebuild.dependencies]
+cmake = {channel = "conda-forge", version = "*"}
+ninja = {channel = "conda-forge", version = "*"}
+make = {channel = "conda-forge", version = "*"}
+gcc = {channel = "conda-forge", version = "12.*"}
+gxx = {channel = "conda-forge", version = "12.*"}
+c-compiler = {channel = "conda-forge", version = "*"}
+cxx-compiler = {channel = "conda-forge", version = "*"}
+cccl = {channel = "conda-forge", version = "*"}
+glm = {channel = "conda-forge", version = "*"}
+
+[feature.ropebuild.pypi-dependencies]
+
+[feature.noposplat.dependencies]
+wheel = {channel = "conda-forge", version = "*"}
+tqdm = {channel = "conda-forge", version = "*"}
+lightning = {channel = "conda-forge", version = "*"}
+black = {channel = "conda-forge", version = "*"}
+ruff = {channel = "conda-forge", version = "*"}
+hydra-core = {channel = "conda-forge", version = "*"}
+jaxtyping = {channel = "conda-forge", version = "*"}
+beartype = {channel = "conda-forge", version = "*"}
+wandb = {channel = "conda-forge", version = "*"}
+einops = {channel = "conda-forge", version = "*"}
+colorama = {channel = "conda-forge", version = "*"}
+scikit-image = {channel = "conda-forge", version = "*"}
+colorspacious = {channel = "conda-forge", version = "*"}
+matplotlib = {channel = "conda-forge", version = "*"}
+moviepy = {channel = "conda-forge", version = "*"}
+imageio = {channel = "conda-forge", version = "*"}
+timm = {channel = "conda-forge", version = "*"}
+dacite = {channel = "conda-forge", version = "*"}
+e3nn = {channel = "conda-forge", version = "*"}
+plyfile = {channel = "conda-forge", version = "*"}
+tabulate = {channel = "conda-forge", version = "*"}
+scikit-video = {channel = "conda-forge", version = "*"}
+ffmpeg = {channel = "conda-forge", version = "*"}
+
+[feature.noposplat.pypi-dependencies]
+opencv-python = {version = "*"}
+# diff_gaussian_rasterization = { git = "https://github.com/rmurai0610/diff-gaussian-rasterization-w-pose.git" }
+lpips = {version = "*"}
+
+
+[feature.noposplat.tasks]
+install-pypi-dep = "pip install svg.py"
+install-gaussian-slam-rasterizer = "git clone https://github.com/rmurai0610/diff-gaussian-rasterization-w-pose.git && sed -i '13i #include <float.h>' diff-gaussian-rasterization-w-pose/cuda_rasterizer/rasterizer_impl.h && pip install ./diff-gaussian-rasterization-w-pose"
+compile-rope-kernel = "cd src/model/encoder/backbone/croco/curope/ && python setup.py build_ext --inplace && cd ../../../../../.."
+
+[feature.pycharm.dependencies]
+pixi-pycharm = "*"
+
+[environments]
+npsplat = {features = ["py310", "torch241cu124", "ropebuild", "noposplat", "pycharm"]}
