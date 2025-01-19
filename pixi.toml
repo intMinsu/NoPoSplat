@@ -76,7 +76,7 @@ lpips = {version = "*"}
 
 [feature.noposplat.tasks]
 install-pypi-dep = "pip install svg.py"
-install-gaussian-slam-rasterizer = "git clone https://github.com/rmurai0610/diff-gaussian-rasterization-w-pose.git && sed -i '13i #include <float.h>' diff-gaussian-rasterization-w-pose/cuda_rasterizer/rasterizer_impl.h && pip install ./diff-gaussian-rasterization-w-pose"
+install-gaussian-slam-rasterizer = "sed -i '13i #include <float.h>' diff-gaussian-rasterization-w-pose/cuda_rasterizer/rasterizer_impl.h && pip install ./diff-gaussian-rasterization-w-pose"
 compile-rope-kernel = "cd src/model/encoder/backbone/croco/curope/ && python setup.py build_ext --inplace && cd ../../../../../.."
 
 [feature.pycharm.dependencies]
