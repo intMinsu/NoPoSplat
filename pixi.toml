@@ -17,11 +17,11 @@ scripts = ["scripts/update_ld_library_path.sh"]
 [feature.py310.dependencies]
 python = "3.10.*"
 pip = {channel = "conda-forge", version = "*"}
-numpy = {channel = "conda-forge", version = "*"}
+# numpy = {channel = "conda-forge", version = "*"}
 pandas = {channel = "conda-forge", version = "*"}
 jupyterlab = {channel = "conda-forge", version = "*"}
 
-[feature.torch241cu124.dependencies]
+[feature.torch241cu121.dependencies]
 pytorch =  {channel = "pytorch", version = "==2.4.1"}
 pytorch-cuda = {channel = "pytorch", version = "==12.4"}
 cuda = {channel = "nvidia/label/cuda-12.4.0", version = "*"}
@@ -70,17 +70,39 @@ ffmpeg = {channel = "conda-forge", version = "*"}
 
 [feature.noposplat.pypi-dependencies]
 opencv-python = {version = "*"}
-# diff_gaussian_rasterization = { git = "https://github.com/rmurai0610/diff-gaussian-rasterization-w-pose.git" }
 lpips = {version = "*"}
-
 
 [feature.noposplat.tasks]
 install-pypi-dep = "pip install svg.py"
+
+# Ubuntu 22.04 build with CUDA 12.1 fails so build with CUDA 12.4
 install-gaussian-slam-rasterizer = "sed -i '13i #include <float.h>' diff-gaussian-rasterization-w-pose/cuda_rasterizer/rasterizer_impl.h && pip install ./diff-gaussian-rasterization-w-pose"
 compile-rope-kernel = "cd src/model/encoder/backbone/croco/curope/ && python setup.py build_ext --inplace && cd ../../../../../.."
+
+[feature.gsplat.dependencies]
+imageio = {channel = "conda-forge", version = "*"}
+imageio-ffmpeg = {channel = "conda-forge", version = "*"}
+torchmetrics = {channel = "conda-forge", version = "*"}
+numpy = {channel = "conda-forge", version = "<2.0.0"}
+tyro = {channel = "conda-forge", version = ">=0.8.8"}
+pillow ={channel = "conda-forge", version = "*"}
+tensorboard = {channel = "conda-forge", version = "*"}
+tensorly = {channel = "conda-forge", version = "*"}
+pyyaml = {channel = "conda-forge", version = "*"}
+scikit-learn = {channel = "conda-forge", version = "*"}
+
+[feature.gsplat.pypi-dependencies]
+viser = {version = "*"}
+nerfview = {version = "*"}
+
+[feature.gsplat.tasks]
+# pt24cu124 fails but pt24cu121 succeeds
+install-gsplat = "pip install https://github.com/nerfstudio-project/gsplat/releases/download/v1.4.0/gsplat-1.4.0%2Bpt24cu121-cp310-cp310-linux_x86_64.whl"
+install-fused-ssim = "pip install git+https://github.com/rahul-goel/fused-ssim@1272e21a282342e89537159e4bad508b19b34157"
+install-pycolmap = "pip install git+https://github.com/rmbrualla/pycolmap@cc7ea4b7301720ac29287dbe450952511b32125e"
 
 [feature.pycharm.dependencies]
 pixi-pycharm = "*"
 
 [environments]
-npsplat = {features = ["py310", "torch241cu124", "ropebuild", "noposplat", "pycharm"]}
+npsplat = {features = ["py310", "torch241cu121", "ropebuild", "noposplat", "gsplat", "pycharm"]}
