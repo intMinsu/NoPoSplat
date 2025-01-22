@@ -240,6 +240,10 @@ class EncoderNoPoSplat(Encoder[EncoderNoPoSplatCfg]):
         )
 
     def get_data_shim(self) -> DataShim:
+        """
+        Return a data transformation function applying normalization using self.cfg.input_mean and self.cfg.input_std.
+        """
+
         def data_shim(batch: BatchedExample) -> BatchedExample:
             batch = apply_normalize_shim(
                 batch,

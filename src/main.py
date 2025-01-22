@@ -13,24 +13,24 @@ from lightning.pytorch.loggers.wandb import WandbLogger
 from lightning.pytorch.plugins.environments import SLURMEnvironment
 from omegaconf import DictConfig, OmegaConf
 
-from src.misc.weight_modify import checkpoint_filter_fn
-from src.model.distiller import get_distiller
+from .misc.weight_modify import checkpoint_filter_fn
+from .model.distiller import get_distiller
 
 # Configure beartype and jaxtyping.
 with install_import_hook(
     ("src",),
     ("beartype", "beartype"),
 ):
-    from src.config import load_typed_root_config
-    from src.dataset.data_module import DataModule
-    from src.global_cfg import set_cfg
-    from src.loss import get_losses
-    from src.misc.LocalLogger import LocalLogger
-    from src.misc.step_tracker import StepTracker
-    from src.misc.wandb_tools import update_checkpoint_path
-    from src.model.decoder import get_decoder
-    from src.model.encoder import get_encoder
-    from src.model.model_wrapper import ModelWrapper
+    from .config import load_typed_root_config
+    from .dataset.data_module import DataModule
+    from .global_cfg import set_cfg
+    from .loss import get_losses
+    from .misc.LocalLogger import LocalLogger
+    from .misc.step_tracker import StepTracker
+    from .misc.wandb_tools import update_checkpoint_path
+    from .model.decoder import get_decoder
+    from .model.encoder import get_encoder
+    from .model.model_wrapper import ModelWrapper
 
 
 def cyan(text: str) -> str:
@@ -54,6 +54,7 @@ def train(cfg_dict: DictConfig):
 
     # Set up logging with wandb.
     callbacks = []
+    # give wandb.mode=online
     if cfg_dict.wandb.mode != "disabled":
         logger = WandbLogger(
             project=cfg_dict.wandb.project,
@@ -109,7 +110,7 @@ def train(cfg_dict: DictConfig):
         gradient_clip_val=cfg.trainer.gradient_clip_val,
         max_steps=cfg.trainer.max_steps,
         # plugins=[SLURMEnvironment(requeue_signal=signal.SIGUSR1)],  # Uncomment for SLURM auto resubmission.
-        inference_mode=False if (cfg.mode == "test" and cfg.test.align_pose) else True,
+        inference_mode=False if (cfg.mode == "test" and cfg.test.align_pose) else True, # align_pose in test mode requires autograd, so autograd should remain during eval stage.
     )
     torch.manual_seed(cfg_dict.seed + trainer.global_rank)
 

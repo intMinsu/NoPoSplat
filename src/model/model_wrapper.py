@@ -147,7 +147,10 @@ class ModelWrapper(LightningModule):
                         else:
                             raise NotImplementedError
             batch = batch_combined
+
+        # It returns a data transformation function combining encoders' data transformation functions
         batch: BatchedExample = self.data_shim(batch)
+
         _, _, _, h, w = batch["target"]["image"].shape
 
         # Run the model.

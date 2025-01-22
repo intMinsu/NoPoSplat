@@ -7,6 +7,9 @@ from torch.multiprocessing import Manager
 
 
 class StepTracker:
+    # Managing an integer value 'step' across multiple processes.
+
+    # Reentrant lock(RLock) is used to ensure process-safe access to the shared 'step' value.
     lock: RLock
     step: Int64[Tensor, ""]
 

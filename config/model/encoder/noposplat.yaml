@@ -30,4 +30,5 @@ apply_bounds_shim: true
 
 gs_params_head_type: dpt_gs
 pose_free: true
+# NoPoSplat uses './pretrained_weights/MASt3R_ViTLarge_BaseDecoder_512_catmlpdpt_metric.pth'
 pretrained_weights: ""

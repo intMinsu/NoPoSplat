@@ -72,9 +72,12 @@ def load_typed_config(
 
 
 def separate_loss_cfg_wrappers(joined: dict) -> list[LossCfgWrapper]:
-    # The dummy allows the union to be converted.
+    # The dummy allows the union loss cfg (LossCfgWrapper = LossDepthCfgWrapper | LossLpipsCfgWrapper | LossMseCfgWrapper) to be converted as a list of typed wrappers.
+    # Input : { "mse": { "weight": 1.0 }, "depth": {...}, "lpips": {...} }
+    # Output : [LossMseCfgWrapper(mse=LossMseCfg(weight=1.0)), LossDepthCfgWrapper( ... ), LossLpipsCfgWrapper( ... )]
+
     @dataclass
-    class Dummy:
+    class Dummy: # Dummy class as from_dict expects @dataclass
         dummy: LossCfgWrapper
 
     return [
