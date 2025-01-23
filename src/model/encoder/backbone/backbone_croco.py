@@ -77,6 +77,7 @@ class AsymmetricCroCo(CroCoNet):
             self.intrinsics_embed_decoder_dim = (self.intrinsics_embed_degree + 1) ** 2 if self.intrinsics_embed_degree > 0 else 3
 
         self.patch_embed_cls = cfg.patch_embed_cls
+        # fill_default_args
         self.croco_args = fill_default_args(croco_params[cfg.model], CroCoNet.__init__)
 
         super().__init__(**croco_params[cfg.model])

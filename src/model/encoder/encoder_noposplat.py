@@ -66,6 +66,7 @@ class EncoderNoPoSplat(Encoder[EncoderNoPoSplatCfg]):
     def __init__(self, cfg: EncoderNoPoSplatCfg) -> None:
         super().__init__(cfg)
 
+        # NoPoSplat uses AsymmetricCroCo backbone in src/model/encoder/backbone/backbone_croco.py
         self.backbone = get_backbone(cfg.backbone, 3)
 
         self.pose_free = cfg.pose_free
@@ -75,7 +76,7 @@ class EncoderNoPoSplat(Encoder[EncoderNoPoSplatCfg]):
             self.gaussian_adapter = GaussianAdapter(cfg.gaussian_adapter)
 
         self.patch_size = self.backbone.patch_embed.patch_size[0]
-        self.raw_gs_dim = 1 + self.gaussian_adapter.d_in  # 1 for opacity
+        self.raw_gs_dim = 1 + self.gaussian_adapter.d_in  # 1(opacity)+3(scale)+4(rotataion)+(sh_degree+1)**2
 
         self.gs_params_head_type = cfg.gs_params_head_type
 
@@ -83,6 +84,8 @@ class EncoderNoPoSplat(Encoder[EncoderNoPoSplatCfg]):
                            depth_mode=('exp', -inf, inf), conf_mode=None,)
         self.set_gs_params_head(cfg, cfg.gs_params_head_type)
 
+
+    #TODO: head_type='dpt' && output_mode='pts3d' is used for assigning head1, head2 but it is not used for anywhere
     def set_center_head(self, output_mode, head_type, landscape_only, depth_mode, conf_mode):
         self.backbone.depth_mode = depth_mode
         self.backbone.conf_mode = conf_mode
@@ -94,6 +97,7 @@ class EncoderNoPoSplat(Encoder[EncoderNoPoSplatCfg]):
         self.head1 = transpose_to_landscape(self.downstream_head1, activate=landscape_only)
         self.head2 = transpose_to_landscape(self.downstream_head2, activate=landscape_only)
 
+    # head_type='dpt_gs' && output_mode='gs_params' is used by default
     def set_gs_params_head(self, cfg, head_type):
         if head_type == 'linear':
             self.gaussian_param_head = nn.Sequential(
@@ -147,6 +151,8 @@ class EncoderNoPoSplat(Encoder[EncoderNoPoSplatCfg]):
 
         # Encode the context images.
         dec1, dec2, shape1, shape2, view1, view2 = self.backbone(context, return_views=True)
+
+        # Explicitly disable Automatic Mixed Precision
         with torch.cuda.amp.autocast(enabled=False):
             res1 = self._downstream_head(1, [tok.float() for tok in dec1], shape1)
             res2 = self._downstream_head(2, [tok.float() for tok in dec2], shape2)

@@ -21,7 +21,7 @@ from .postprocess import postprocess
 class DPTOutputAdapter_fix(DPTOutputAdapter):
     """
     Adapt croco's DPTOutputAdapter implementation for dust3r:
-    remove duplicated weigths, and fix forward for dust3r
+    remove duplicated weights, and fix forward for dust3r
     """
 
     def init(self, dim_tokens_enc=768):
@@ -33,6 +33,10 @@ class DPTOutputAdapter_fix(DPTOutputAdapter):
         del self.act_4_postprocess
 
     def forward(self, encoder_tokens: List[torch.Tensor], image_size=None, ray_embedding=None):
+        # encoder_tokens is obtained from backbone(AsymmetricCroco)
+        # dec1, dec2, shape1, shape2, view1, view2 = self.backbone(context, return_views=True)
+        # encoder_tokens: [tok.float() for tok in dec1], [tok.float() for tok in dec2]
+
         assert self.dim_tokens_enc is not None, 'Need to call init(dim_tokens_enc) function first'
         # H, W = input_info['image_size']
         image_size = self.image_size if image_size is None else image_size
@@ -45,6 +49,7 @@ class DPTOutputAdapter_fix(DPTOutputAdapter):
         layers = [encoder_tokens[hook] for hook in self.hooks]
 
         # Extract only task-relevant tokens and ignore global tokens.
+        # TODO: Note that adapt_tokens is just identity function
         layers = [self.adapt_tokens(l) for l in layers]
 
         # Reshape tokens to spatial representation

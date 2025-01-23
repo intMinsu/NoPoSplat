@@ -8,9 +8,16 @@ import torch
 
 
 def fill_default_args(kwargs, func):
+    """
+    This takes a dictionary of arguments (kwargs) and a function (func), and
+    ensures that the dictionary includes all the default arguments specified in
+    the function's signature. If a parameter in the function has a default value
+    and is not present in kwargs, it adds that default value to kwargs.
+    """
     import inspect  # a bit hacky but it works reliably
     signature = inspect.signature(func)
 
+    # signature.parameters is returned as OrderedDict
     for k, v in signature.parameters.items():
         if v.default is inspect.Parameter.empty:
             continue

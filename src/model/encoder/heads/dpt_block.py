@@ -14,10 +14,25 @@ import torch.nn.functional as F
 from einops import rearrange, repeat
 from typing import Union, Tuple, Iterable, List, Optional, Dict
 
+
 def pair(t):
+    """
+        Ensure that the patch size is always a tuple.
+    """
     return t if isinstance(t, tuple) else (t, t)
 
+
 def make_scratch(in_shape, out_shape, groups=1, expand=False):
+    """
+            Args:
+                in_shape : A list of 4 input channel sizes.
+                out_shape : The base output channel size.
+                groups : refers to groups arg in nn.Conv2d.
+                expand : If expand=True, the output shape is scaled for each layer. (*1 *2 *4 *8)
+
+            Returns:
+                scratch : A container scratch with 4 nn.Conv2d layers.
+    """
     scratch = nn.Module()
 
     out_shape1 = out_shape
@@ -76,13 +91,14 @@ def make_scratch(in_shape, out_shape, groups=1, expand=False):
 
     return scratch
 
+
 class ResidualConvUnit_custom(nn.Module):
     """Residual convolution module."""
 
     def __init__(self, features, activation, bn):
         """Init.
         Args:
-            features (int): number of features
+            features (int): number of features (in_channels = out_channels = features)
         """
         super().__init__()
 
@@ -141,22 +157,23 @@ class ResidualConvUnit_custom(nn.Module):
 
         return self.skip_add.add(out, x)
 
+
 class FeatureFusionBlock_custom(nn.Module):
-    """Feature fusion block."""
+    """Multi-scale Feature fusion block."""
 
     def __init__(
-        self,
-        features,
-        activation,
-        deconv=False,
-        bn=False,
-        expand=False,
-        align_corners=True,
-        width_ratio=1,
+            self,
+            features,
+            activation,
+            deconv=False,
+            bn=False,
+            expand=False,
+            align_corners=True,
+            width_ratio=1,
     ):
         """Init.
         Args:
-            features (int): number of features
+            features (int): number of features (if expand=False, in_channels = out_channels = features)
         """
         super(FeatureFusionBlock_custom, self).__init__()
         self.width_ratio = width_ratio
@@ -210,12 +227,13 @@ class FeatureFusionBlock_custom(nn.Module):
                 shape = 3 * output.shape[3]
             else:
                 shape = int(self.width_ratio * 2 * output.shape[2])
-            output  = F.interpolate(output, size=(2* output.shape[2], shape), mode='bilinear')
+            output = F.interpolate(output, size=(2 * output.shape[2], shape), mode='bilinear')
         else:
             output = nn.functional.interpolate(output, scale_factor=2,
-                    mode="bilinear", align_corners=self.align_corners)
+                                               mode="bilinear", align_corners=self.align_corners)
         output = self.out_conv(output)
         return output
+
 
 def make_fusion_block(features, use_bn, width_ratio=1, expand=False):
     return FeatureFusionBlock_custom(
@@ -228,8 +246,9 @@ def make_fusion_block(features, use_bn, width_ratio=1, expand=False):
         width_ratio=width_ratio,
     )
 
+
 class Interpolate(nn.Module):
-    """Interpolation module."""
+    """Interpolation 'module' that wraps F.interpolate."""
 
     def __init__(self, scale_factor, mode, align_corners=False):
         """Init.
@@ -261,20 +280,22 @@ class Interpolate(nn.Module):
 
         return x
 
+
 class DPTOutputAdapter(nn.Module):
     """DPT output adapter.
 
-    :param num_cahnnels: Number of output channels
-    :param stride_level: tride level compared to the full-sized image.
+    :param num_channels: Number of output channels
+    :param stride_level: Downsampling factor. Stride level compared to the full-sized image.
         E.g. 4 for 1/4th the size of the image.
-    :param patch_size_full: Int or tuple of the patch size over the full image size.
-        Patch size for smaller inputs will be computed accordingly.
-    :param hooks: Index of intermediate layers
-    :param layer_dims: Dimension of intermediate layers
-    :param feature_dim: Feature dimension
-    :param last_dim: out_channels/in_channels for the last two Conv2d when head_type == regression
+    :param patch_size: Int or tuple of the patch size. 16 by default.
+    :param hooks: Index of intermediate layers from the backbone. [2, 5, 8, 11] by default.
+    :param layer_dims: The channel dim of each of 4 layers. [96, 192, 384, 768] by default.
+    :param feature_dim: The feature dim for the refinement steps. 256 by default.
+    :param last_dim: out_channels/in_channels for the last two Conv2d when head_type == regression. 32 by default.
     :param use_bn: If set to True, activates batch norm
-    :param dim_tokens_enc:  Dimension of tokens coming from encoder
+    :param dim_tokens_enc: The dimension of encoder's tokens. Please initialize when instantiating the class.
+    :param head_type: Type of output head ('regression', 'semseg', or 'gs_params')
+    :param output_with_ratio: Control the value for resizing which is used in the fusion blocks.
     """
 
     def __init__(self,
@@ -426,11 +447,11 @@ class DPTOutputAdapter(nn.Module):
         return x
 
     def forward(self, encoder_tokens: List[torch.Tensor], image_size):
-            #input_info: Dict):
+        #input_info: Dict):
         assert self.dim_tokens_enc is not None, 'Need to call init(dim_tokens_enc) function first'
         H, W = image_size
-        
-        # Number of patches in height and width
+
+        # Number of patches in height and width. # stride_level remains 1 for NoPoSplat case
         N_H = H // (self.stride_level * self.P_H)
         N_W = W // (self.stride_level * self.P_W)
 
