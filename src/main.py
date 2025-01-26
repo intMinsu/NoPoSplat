@@ -11,8 +11,9 @@ from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from lightning.pytorch.loggers.wandb import WandbLogger
 from lightning.pytorch.plugins.environments import SLURMEnvironment
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 
+from .logger_setup import WandbLoggerManager
 from .misc.weight_modify import checkpoint_filter_fn
 from .model.distiller import get_distiller
 
@@ -42,6 +43,7 @@ def cyan(text: str) -> str:
     config_path="../config",
     config_name="main",
 )
+
 def train(cfg_dict: DictConfig):
     cfg = load_typed_root_config(cfg_dict)
     set_cfg(cfg_dict)
@@ -56,15 +58,9 @@ def train(cfg_dict: DictConfig):
     callbacks = []
     # give wandb.mode=online
     if cfg_dict.wandb.mode != "disabled":
-        logger = WandbLogger(
-            project=cfg_dict.wandb.project,
-            mode=cfg_dict.wandb.mode,
-            name=f"{cfg_dict.wandb.name} ({output_dir.parent.name}/{output_dir.name})",
-            tags=cfg_dict.wandb.get("tags", None),
-            log_model=False,
-            save_dir=output_dir,
-            config=OmegaConf.to_container(cfg_dict),
-        )
+        WandbLoggerManager.setup(cfg_dict, output_dir)
+        logger = WandbLoggerManager.get_logger()
+
         callbacks.append(LearningRateMonitor("step", True))
 
         # On rank != 0, wandb.run is None.

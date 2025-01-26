@@ -17,6 +17,7 @@ import torch.nn.functional as F
 from .dpt_block import DPTOutputAdapter
 from .postprocess import postprocess
 
+from src.logger_setup import WandbLoggerManager
 
 class DPTOutputAdapter_fix(DPTOutputAdapter):
     """
@@ -86,6 +87,11 @@ class PixelwiseTaskWithDPT(nn.Module):
         self.depth_mode = depth_mode
         self.conf_mode = conf_mode
 
+        column = ["output_width_ratio", "num_channels"]
+        data = [[str(output_width_ratio), str(num_channels)]]
+        wandb_logger = WandbLoggerManager.get_logger()
+        wandb_logger.log_text(key="dpt_head", columns=column, data=data)
+
         assert n_cls_token == 0, "Not implemented"
         dpt_args = dict(output_width_ratio=output_width_ratio,
                         num_channels=num_channels,
@@ -97,6 +103,9 @@ class PixelwiseTaskWithDPT(nn.Module):
         self.dpt.init(**dpt_init_args)
 
     def forward(self, x, img_info, ray_embedding=None):
+
+
+
         out = self.dpt(x, image_size=(img_info[0], img_info[1]), ray_embedding=ray_embedding)
         if self.postprocess:
             out = self.postprocess(out, self.depth_mode, self.conf_mode)

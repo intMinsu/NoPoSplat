@@ -85,7 +85,7 @@ class EncoderNoPoSplat(Encoder[EncoderNoPoSplatCfg]):
         self.set_gs_params_head(cfg, cfg.gs_params_head_type)
 
 
-    #TODO: head_type='dpt' && output_mode='pts3d' is used for assigning head1, head2 but it is not used for anywhere
+    # head_type='dpt' && output_mode='pts3d' is used for assigning head1, head2, which predicts pts3d1, pst3d2
     def set_center_head(self, output_mode, head_type, landscape_only, depth_mode, conf_mode):
         self.backbone.depth_mode = depth_mode
         self.backbone.conf_mode = conf_mode
@@ -114,6 +114,7 @@ class EncoderNoPoSplat(Encoder[EncoderNoPoSplatCfg]):
             self.gaussian_param_head2 = head_factory(head_type, 'gs_params', self.backbone, has_conf=False, out_nchan=self.raw_gs_dim)  # for view2 3DGS
 
         elif head_type == 'dpt_gs':
+            # num_channels of head = out_nchan + has_conf(True or False), has_conf is False by default. So num_channels be self.raw_gs_dim(recap: Gaussian parameters without the center positinn)
             self.gaussian_param_head = head_factory(head_type, 'gs_params', self.backbone, has_conf=False, out_nchan=self.raw_gs_dim)
             self.gaussian_param_head2 = head_factory(head_type, 'gs_params', self.backbone, has_conf=False, out_nchan=self.raw_gs_dim)
         else:

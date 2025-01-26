@@ -17,6 +17,7 @@ from .dpt_block import DPTOutputAdapter, Interpolate, make_fusion_block
 from .head_modules import UnetExtractor
 from .postprocess import postprocess
 
+from src.logger_setup import WandbLoggerManager
 
 class DPTOutputAdapter_fix(DPTOutputAdapter):
     """
@@ -25,6 +26,7 @@ class DPTOutputAdapter_fix(DPTOutputAdapter):
     """
 
     def init(self, dim_tokens_enc=768):
+        # init not __init__!
         super().init(dim_tokens_enc)
         # these are duplicated weights
         del self.act_1_postprocess
@@ -40,7 +42,12 @@ class DPTOutputAdapter_fix(DPTOutputAdapter):
             nn.ReLU(),
         )
 
-    def forward(self, encoder_tokens: List[torch.Tensor], depths, imgs, image_size=None, conf=None):
+    def forward(self,
+                encoder_tokens: List[torch.Tensor],
+                depths, # not used
+                imgs,
+                image_size=None,
+                conf=None):
         # encoder_tokens is obtained from backbone(AsymmetricCroco)
         # dec1, dec2, shape1, shape2, view1, view2 = self.backbone(context, return_views=True)
         # encoder_tokens: [tok.float() for tok in dec1], [tok.float() for tok in dec2]
@@ -89,13 +96,26 @@ class DPTOutputAdapter_fix(DPTOutputAdapter):
 class PixelwiseTaskWithDPT(nn.Module):
     """ DPT module for dust3r, can return 3D points + confidence for all pixels"""
 
-    def __init__(self, *, n_cls_token=0, hooks_idx=None, dim_tokens=None,
-                 output_width_ratio=1, num_channels=1, postprocess=None, depth_mode=None, conf_mode=None, **kwargs):
+    def __init__(self, *,
+                 n_cls_token=0,
+                 hooks_idx=None,
+                 dim_tokens=None,
+                 output_width_ratio=1,
+                 num_channels=1,
+                 postprocess=None,
+                 depth_mode=None,
+                 conf_mode=None,
+                 **kwargs):
         super(PixelwiseTaskWithDPT, self).__init__()
         self.return_all_layers = True  # backbone needs to return all layers
         self.postprocess = postprocess
         self.depth_mode = depth_mode
         self.conf_mode = conf_mode
+
+        column = ["output_width_ratio", "num_channels"]
+        data = [[str(output_width_ratio), str(num_channels)]]
+        wandb_logger = WandbLoggerManager.get_logger()
+        wandb_logger.log_text(key="dpt_gs_head", columns=column, data=data)
 
         assert n_cls_token == 0, "Not implemented"
         dpt_args = dict(output_width_ratio=output_width_ratio,
@@ -109,8 +129,10 @@ class PixelwiseTaskWithDPT(nn.Module):
 
     def forward(self, x, depths, imgs, img_info, conf=None):
         out = self.dpt(x, depths, imgs, image_size=(img_info[0], img_info[1]), conf=conf)
-        if self.postprocess:
+
+        if self.postprocess: # No postprocess by default
             out = self.postprocess(out, self.depth_mode, self.conf_mode)
+
         return out
 
 

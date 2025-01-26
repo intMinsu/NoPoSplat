@@ -14,6 +14,7 @@ import torch.nn.functional as F
 from einops import rearrange, repeat
 from typing import Union, Tuple, Iterable, List, Optional, Dict
 
+from src.logger_setup import WandbLoggerManager
 
 def pair(t):
     """
@@ -334,6 +335,11 @@ class DPTOutputAdapter(nn.Module):
         self.scratch.refinenet3 = make_fusion_block(feature_dim, use_bn, output_width_ratio)
         self.scratch.refinenet4 = make_fusion_block(feature_dim, use_bn, output_width_ratio)
 
+        column = ["head_type", "dim_tokens_enc"]
+        data = [[self.head_type, str(self.dim_tokens_enc)]]
+        wandb_logger = WandbLoggerManager.get_logger()
+        wandb_logger.log_text(key="dpt_block", columns=column, data=data)
+
         if self.head_type == 'regression':
             # The "DPTDepthModel" head
             self.head = nn.Sequential(
@@ -345,6 +351,7 @@ class DPTOutputAdapter(nn.Module):
             )
         elif self.head_type == 'semseg':
             # The "DPTSegmentationModel" head
+
             self.head = nn.Sequential(
                 nn.Conv2d(feature_dim, feature_dim, kernel_size=3, padding=1, bias=False),
                 nn.BatchNorm2d(feature_dim) if use_bn else nn.Identity(),
@@ -355,6 +362,7 @@ class DPTOutputAdapter(nn.Module):
             )
         elif self.head_type == 'gs_params':
             # The "DPTSegmentationModel" head
+
             self.head = nn.Sequential(
                 nn.Conv2d(feature_dim, feature_dim, kernel_size=3, padding=1, bias=False),
                 nn.BatchNorm2d(feature_dim) if use_bn else nn.Identity(),
