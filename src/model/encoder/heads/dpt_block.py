@@ -383,7 +383,6 @@ class DPTOutputAdapter(nn.Module):
 
         :param dim_tokens_enc: Dimension of tokens coming from encoder
         """
-        #print(dim_tokens_enc)
 
         # Set up activation postprocessing layers
         if isinstance(dim_tokens_enc, int):
@@ -459,7 +458,7 @@ class DPTOutputAdapter(nn.Module):
         assert self.dim_tokens_enc is not None, 'Need to call init(dim_tokens_enc) function first'
         H, W = image_size
 
-        # Number of patches in height and width. # stride_level remains 1 for NoPoSplat case
+        # Number of patches in height and width. # stride_level = 1 for NoPoSplat
         N_H = H // (self.stride_level * self.P_H)
         N_W = W // (self.stride_level * self.P_W)
 

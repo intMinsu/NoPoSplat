@@ -115,12 +115,17 @@ class DatasetRE10k(IterableDataset):
             if self.stage in ("train", "val"):
                 chunk = self.shuffle(chunk)
 
+
+            # exmaple in a chunk is a dictionary like:
+            # {"key": <string scene ID>,
+            # "cameras": FloatTensor, # shape = [, 18]
+            # "images": List[Tensor], ...
             for example in chunk:
-                extrinsics, intrinsics = self.convert_poses(example["cameras"])
+                extrinsics, intrinsics = self.convert_poses(example["cameras"]) # extrinsics is opencv-style c2w matrix, intrinsic is 3x3 normalized matrix.
                 scene = example["key"]
 
                 try:
-                    context_indices, target_indices, overlap = self.view_sampler.sample(
+                    context_indices, target_indices, overlap = self.view_sampler.sample( # overlap value is dummy
                         scene,
                         extrinsics,
                         intrinsics,

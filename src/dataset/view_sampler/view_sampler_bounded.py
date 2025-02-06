@@ -41,15 +41,15 @@ class ViewSamplerBounded(ViewSampler[ViewSamplerBoundedCfg]):
 
         # Compute the context view spacing based on the current global step.
         if self.stage == "test":
-            # When testing, always use the full gap.
+            # When testing, always use the full gap (90)
             max_gap = self.cfg.max_distance_between_context_views
             min_gap = self.cfg.max_distance_between_context_views
         elif self.cfg.warm_up_steps > 0:
-            max_gap = self.schedule(
+            max_gap = self.schedule( # interpolate between 25, 90
                 self.cfg.initial_max_distance_between_context_views,
                 self.cfg.max_distance_between_context_views,
             )
-            min_gap = self.schedule(
+            min_gap = self.schedule( # interpolate between 25, 45
                 self.cfg.initial_min_distance_between_context_views,
                 self.cfg.min_distance_between_context_views,
             )
@@ -60,7 +60,7 @@ class ViewSamplerBounded(ViewSampler[ViewSamplerBoundedCfg]):
         # Pick the gap between the context views.
         if not self.cameras_are_circular:
             max_gap = min(num_views - 1, max_gap)
-        min_gap = max(2 * self.cfg.min_distance_to_context_views, min_gap)
+        min_gap = max(2 * self.cfg.min_distance_to_context_views, min_gap) # min_distance_to_context_views is set to 0 by default
         if max_gap < min_gap:
             raise ValueError("Example does not have enough frames!")
         context_gap = torch.randint(

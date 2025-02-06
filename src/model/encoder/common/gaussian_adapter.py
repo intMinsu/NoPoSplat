@@ -225,7 +225,7 @@ class UnifiedGaussianAdapter(GaussianAdapter):
                     Gaussians: A dataclass with means, covariances, SH, opacities, etc.
         """
 
-        # raw_gaussians: (b, v, r, srf, 1, c - 1)
+        # raw_gaussians: (b, v=2, r=h*w, srf, 1, c - 1) where srf*c = d
         # scales: (b, v, r, srf, 1, 3)
         # rotations: (b, v, r, srf, 1, 4)
         # sh: (b, v, r, srf, 1, 3 * self.d_sh)

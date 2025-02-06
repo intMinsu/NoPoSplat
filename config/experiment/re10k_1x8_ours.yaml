@@ -4,6 +4,7 @@ defaults:
   - /dataset@_group_.re10k: re10k
   - override /model/encoder: noposplat
   - override /model/encoder/backbone: croco
+  - override /model/decoder: gsplat_2dgs
   - override /loss: [mse, lpips]
 
 wandb:
@@ -23,11 +24,11 @@ model:
 dataset:
   re10k:
     view_sampler:
-      warm_up_steps: 20_000
+      warm_up_steps: 100_000
 
 optimizer:
-  lr: 1e-4
-  warm_up_steps: 2000
+  lr: 1.1e-4
+  warm_up_steps: 1333
   backbone_lr_multiplier: 0.1
 
 data_loader:
@@ -35,8 +36,8 @@ data_loader:
     batch_size: 8
 
 trainer:
-  max_steps: 100_001
+  max_steps: 200_001
   val_check_interval: 2000
 
 checkpointing:
-  every_n_train_steps: 20_000
+  every_n_train_steps: 50_000

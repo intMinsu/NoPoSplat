@@ -8,7 +8,7 @@ from ..types import Gaussians
 
 T = TypeVar("T")
 
-
+# Abstract, Generic class
 class Encoder(nn.Module, ABC, Generic[T]):
     cfg: T
 

@@ -95,7 +95,7 @@ def train(cfg_dict: DictConfig):
         logger=logger,
         devices="auto",
         strategy=(
-            "ddp_find_unused_parameters_true"
+            "deepspeed_stage_2"
             if torch.cuda.device_count() > 1
             else "auto"
         ),
@@ -151,7 +151,10 @@ def train(cfg_dict: DictConfig):
     )
 
     if cfg.mode == "train":
-        trainer.fit(model_wrapper, datamodule=data_module, ckpt_path=checkpoint_path)
+        trainer.fit(
+            model_wrapper,
+            datamodule=data_module,
+            ckpt_path=checkpoint_path)
     else:
         trainer.test(
             model_wrapper,

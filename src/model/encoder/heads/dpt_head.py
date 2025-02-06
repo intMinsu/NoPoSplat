@@ -5,7 +5,7 @@
 # dpt head implementation for DUST3R
 # Downstream heads assume inputs of size B x N x C (where N is the number of tokens) ;
 # or if it takes as input the output at every layer, the attribute return_all_layers should be set to True
-# the forward function also takes as input a dictionnary img_info with key "height" and "width"
+# the forward function also takes as input a dictionary img_info with key "height" and "width"
 # for PixelwiseTask, the output will be of dimension B x num_channels x H x W
 # --------------------------------------------------------
 from einops import rearrange
@@ -57,7 +57,7 @@ class DPTOutputAdapter_fix(DPTOutputAdapter):
         layers = [rearrange(l, 'b (nh nw) c -> b c nh nw', nh=N_H, nw=N_W) for l in layers]
 
         layers = [self.act_postprocess[idx](l) for idx, l in enumerate(layers)]
-        # Project layers to chosen feature dim
+        # Project layers to output feature_dim
         layers = [self.scratch.layer_rn[idx](l) for idx, l in enumerate(layers)]
 
         # Fuse layers using refinement stages
@@ -103,9 +103,6 @@ class PixelwiseTaskWithDPT(nn.Module):
         self.dpt.init(**dpt_init_args)
 
     def forward(self, x, img_info, ray_embedding=None):
-
-
-
         out = self.dpt(x, image_size=(img_info[0], img_info[1]), ray_embedding=ray_embedding)
         if self.postprocess:
             out = self.postprocess(out, self.depth_mode, self.conf_mode)

@@ -104,5 +104,11 @@ install-pycolmap = "pip install git+https://github.com/rmbrualla/pycolmap@cc7ea4
 [feature.pycharm.dependencies]
 pixi-pycharm = "*"
 
+[feature.dali.pypi-dependencies]
+nvidia-dali-cuda120 = {version = "*"}
+
+[feature.deepspeed.pypi-dependencies]
+deepspeed = {version = "*"}
+
 [environments]
-npsplat = {features = ["py310", "torch241cu121", "ropebuild", "noposplat", "gsplat", "pycharm"]}
+npsplat = {features = ["py310", "torch241cu121", "ropebuild", "noposplat", "gsplat", "pycharm", "dali", "deepspeed"]}
