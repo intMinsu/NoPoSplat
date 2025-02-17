@@ -154,7 +154,7 @@ class EncoderNoPoSplat(Encoder[EncoderNoPoSplatCfg]):
         dec1, dec2, shape1, shape2, view1, view2 = self.backbone(context, return_views=True)
 
         # Explicitly disable Automatic Mixed Precision
-        with torch.cuda.amp.autocast(enabled=False):
+        with torch.amp.autocast(device_type="cuda", enabled=False):
             res1 = self._downstream_head(1, [tok.float() for tok in dec1], shape1)
             res2 = self._downstream_head(2, [tok.float() for tok in dec2], shape2)
 

@@ -2,7 +2,7 @@ from math import isqrt
 from typing import Literal
 
 import torch
-from diff_gaussian_rasterization import (
+from diff_surfel_rasterization import (
     GaussianRasterizationSettings,
     GaussianRasterizer,
 )
@@ -43,7 +43,7 @@ def get_projection_matrix(
     return result
 
 
-def render_cuda(
+def render_cuda_2dgs(
     extrinsics: Float[Tensor, "batch 4 4"],
     intrinsics: Float[Tensor, "batch 3 3"],
     near: Float[Tensor, " batch"],
@@ -56,9 +56,9 @@ def render_cuda(
     gaussian_opacities: Float[Tensor, "batch gaussian"],
     scale_invariant: bool = True,
     use_sh: bool = True,
-    cam_rot_delta: Float[Tensor, "batch 3"] | None = None,
-    cam_trans_delta: Float[Tensor, "batch 3"] | None = None,
-) -> tuple[Float[Tensor, "batch 3 height width"], Float[Tensor, "batch height width"]]:
+    #cam_rot_delta: Float[Tensor, "batch 3"] | None = None,
+    #cam_trans_delta: Float[Tensor, "batch 3"] | None = None,
+) -> tuple[Float[Tensor, "batch 3 height width"], Float[Tensor, "batch _ height width"]]:
     assert use_sh or gaussian_sh_coefficients.shape[-1] == 1
 
     # Make sure everything is in a range where numerical issues don't appear.
@@ -89,9 +89,10 @@ def render_cuda(
 
     all_images = []
     all_radii = []
-    all_depths = []
+    all_maps = []
+
     for i in range(b):
-        print(f"cuda_splatting i, b*v : {i}, {b}")
+        print(f"cuda_splatting 2dgs i, b*v : {i}, {b}")
         # Set up a tensor for the gradients of the screen-space means.
         mean_gradients = torch.zeros_like(gaussian_means[i], requires_grad=True)
         try:
@@ -108,30 +109,30 @@ def render_cuda(
             scale_modifier=1.0,
             viewmatrix=view_matrix[i],
             projmatrix=full_projection[i],
-            projmatrix_raw=projection_matrix[i],
+            #projmatrix_raw=projection_matrix[i],
             sh_degree=degree,
             campos=extrinsics[i, :3, 3],
             prefiltered=False,  # This matches the original usage.
-            debug=False,
+            debug=True,
         )
         rasterizer = GaussianRasterizer(settings)
 
         row, col = torch.triu_indices(3, 3)
 
-        image, radii, depth, opacity, n_touched = rasterizer(
+        image, radii, allmap = rasterizer(
             means3D=gaussian_means[i],
             means2D=mean_gradients,
             shs=shs[i] if use_sh else None,
             colors_precomp=None if use_sh else shs[i, :, 0, :],
             opacities=gaussian_opacities[i, ..., None],
             cov3D_precomp=gaussian_covariances[i, :, row, col],
-            theta=cam_rot_delta[i] if cam_rot_delta is not None else None,
-            rho=cam_trans_delta[i] if cam_trans_delta is not None else None,
+            #theta=cam_rot_delta[i] if cam_rot_delta is not None else None,
+            #rho=cam_trans_delta[i] if cam_trans_delta is not None else None,
         )
         all_images.append(image)
         all_radii.append(radii)
-        all_depths.append(depth.squeeze(0))
-    return torch.stack(all_images), torch.stack(all_depths)
+        all_maps.append(allmap.squeeze(0))
+    return torch.stack(all_images), torch.stack(all_maps)
 
 
 def render_cuda_orthographic(

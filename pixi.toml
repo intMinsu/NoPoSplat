@@ -110,5 +110,12 @@ nvidia-dali-cuda120 = {version = "*"}
 [feature.deepspeed.pypi-dependencies]
 deepspeed = {version = "*"}
 
+[feature.2dgs.pypi-dependencies]
+open3d = {version = ">=0.18.0,<=0.19.0"}
+mediapy = "*"
+
+[feature.2dgs.tasks]
+install-gaussian-surfel-rasterizer = "git clone https://github.com/hbb1/diff-surfel-rasterization.git && pip install ./diff-surfel-rasterization"
+
 [environments]
-npsplat = {features = ["py310", "torch241cu121", "ropebuild", "noposplat", "gsplat", "pycharm", "dali", "deepspeed"]}
+npsplat = {features = ["py310", "torch241cu121", "ropebuild", "noposplat", "gsplat", "pycharm", "dali", "deepspeed", "2dgs"]}

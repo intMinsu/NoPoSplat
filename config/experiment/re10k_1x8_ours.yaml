@@ -4,7 +4,7 @@ defaults:
   - /dataset@_group_.re10k: re10k
   - override /model/encoder: noposplat
   - override /model/encoder/backbone: croco
-  - override /model/decoder: gsplat_2dgs
+  - override /model/decoder: splatting_cuda_2dgs #splatting_cuda | gsplat_cuda | splatting_cuda_2dgs
   - override /loss: [mse, lpips]
 
 wandb:
@@ -33,7 +33,7 @@ optimizer:
 
 data_loader:
   train:
-    batch_size: 6
+    batch_size: 1
 
 trainer:
   max_steps: 200_001

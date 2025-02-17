@@ -132,6 +132,8 @@ class ModelWrapper(LightningModule):
 
     def training_step(self, batch, batch_idx):
         # combine batch from different dataloaders
+
+
         if isinstance(batch, list):
             batch_combined = None
             for batch_per_dl in batch:
@@ -158,6 +160,7 @@ class ModelWrapper(LightningModule):
         if self.distiller is not None:
             visualization_dump = {}
         gaussians = self.encoder(batch["context"], self.global_step, visualization_dump=visualization_dump)
+
         output = self.decoder.forward(
             gaussians,
             batch["target"]["extrinsics"],
@@ -323,8 +326,9 @@ class ModelWrapper(LightningModule):
                         batch["target"]["near"],
                         batch["target"]["far"],
                         (h, w),
-                        cam_rot_delta=cam_rot_delta,
-                        cam_trans_delta=cam_trans_delta,
+                        #cam_rot_delta=cam_rot_delta,
+                        #cam_trans_delta=cam_trans_delta,
+                        global_step=self.global_step,
                     )
 
                     # Compute and log loss.
@@ -500,7 +504,7 @@ class ModelWrapper(LightningModule):
             )
             return extrinsics, intrinsics
 
-        return self.render_video_generic(batch, trajectory_fn, "wobble", num_frames=60)
+        return self.render_video_generic(batch, trajectory_fn, "wobble", num_frames=30)
 
     @rank_zero_only
     def render_video_interpolation(self, batch: BatchedExample) -> None:
@@ -570,7 +574,7 @@ class ModelWrapper(LightningModule):
             batch,
             trajectory_fn,
             "interpolation_exagerrated",
-            num_frames=300,
+            num_frames=30,
             smooth=False,
             loop_reverse=False,
         )

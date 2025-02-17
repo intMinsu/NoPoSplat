@@ -203,9 +203,15 @@ class DatasetRE10k(IterableDataset):
                     },
                     "scene": scene,
                 }
+
                 if self.stage == "train" and self.cfg.augment:
                     example = apply_augmentation_shim(example)
-                yield apply_crop_shim(example, tuple(self.cfg.input_image_shape))
+
+                crop_example = apply_crop_shim(example, tuple(self.cfg.input_image_shape))
+
+                #print(f"\nBefore crop\n{example['target']['intrinsics'][0]} \n\nAfter crop\n{crop_example['target']['intrinsics'][0]}")
+                #print(f"After crop\n{crop_example['target']['intrinsics'][0]}")
+                yield crop_example
 
     def convert_poses(
         self,

@@ -1,7 +1,8 @@
 from omegaconf import OmegaConf
 from lightning.pytorch.loggers.wandb import WandbLogger
+from lightning.pytorch.utilities import rank_zero_only
 
-class WandbLoggerManager:
+class WandbLoggerManager():
     _logger = None
 
     @classmethod

@@ -335,10 +335,10 @@ class DPTOutputAdapter(nn.Module):
         self.scratch.refinenet3 = make_fusion_block(feature_dim, use_bn, output_width_ratio)
         self.scratch.refinenet4 = make_fusion_block(feature_dim, use_bn, output_width_ratio)
 
-        column = ["head_type", "dim_tokens_enc"]
-        data = [[self.head_type, str(self.dim_tokens_enc)]]
-        wandb_logger = WandbLoggerManager.get_logger()
-        wandb_logger.log_text(key="dpt_block", columns=column, data=data)
+        # column = ["head_type", "dim_tokens_enc"]
+        # data = [[self.head_type, str(self.dim_tokens_enc)]]
+        # wandb_logger = WandbLoggerManager.get_logger()
+        # wandb_logger.log_text(key="dpt_block", columns=column, data=data)
 
         if self.head_type == 'regression':
             # The "DPTDepthModel" head

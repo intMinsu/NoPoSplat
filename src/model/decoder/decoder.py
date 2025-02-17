@@ -16,7 +16,7 @@ DepthRenderingMode = Literal[
 
 
 @dataclass
-class    DecoderOutput:
+class DecoderOutput:
     color: Float[Tensor, "batch view 3 height width"]
     depth: Float[Tensor, "batch view height width"] | None
 
@@ -41,5 +41,6 @@ class Decoder(nn.Module, ABC, Generic[T]):
         far: Float[Tensor, "batch view"],
         image_shape: tuple[int, int],
         depth_mode: DepthRenderingMode | None = None,
+        global_step: int | None = None,
     ) -> DecoderOutput:
         pass

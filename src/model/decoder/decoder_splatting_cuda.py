@@ -11,6 +11,7 @@ from ..types import Gaussians
 from .cuda_splatting import DepthRenderingMode, render_cuda
 from .decoder import Decoder, DecoderOutput
 
+from src.logger_setup import WandbLoggerManager
 
 @dataclass
 class DecoderSplattingCUDACfg:
@@ -45,8 +46,12 @@ class DecoderSplattingCUDA(Decoder[DecoderSplattingCUDACfg]):
         depth_mode: DepthRenderingMode | None = None,
         cam_rot_delta: Float[Tensor, "batch view 3"] | None = None,
         cam_trans_delta: Float[Tensor, "batch view 3"] | None = None,
+        global_step: int | None = None,
     ) -> DecoderOutput:
+        wandb_logger = WandbLoggerManager.get_logger()
+
         b, v, _, _ = extrinsics.shape
+
         color, depth = render_cuda(
             rearrange(extrinsics, "b v i j -> (b v) i j"),
             rearrange(intrinsics, "b v i j -> (b v) i j"),
@@ -63,6 +68,12 @@ class DecoderSplattingCUDA(Decoder[DecoderSplattingCUDACfg]):
             cam_trans_delta=rearrange(cam_trans_delta, "b v i -> (b v) i") if cam_trans_delta is not None else None,
         )
         color = rearrange(color, "(b v) c h w -> b v c h w", b=b, v=v)
+
+        wandb_logger.log_image(
+            "rasterized output of first batch",
+            [color[0, i] for i in range(color.shape[1])],
+            step=global_step,
+        )
 
         depth = rearrange(depth, "(b v) h w -> b v h w", b=b, v=v)
         return DecoderOutput(color, depth)

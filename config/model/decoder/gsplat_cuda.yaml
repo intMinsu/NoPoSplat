@@ -1,4 +1,4 @@
-name: gsplat_2dgs
+name: gsplat_cuda
 background_color: null
 make_scale_invariant: false
 radius_clip: 0.0
@@ -6,7 +6,7 @@ eps2d: 0.3
 sh_degree: 3
 packed: true
 tile_size: 16
-render_mode: RGB
+render_mode: RGB+D
 sparse_grad: false
 absgrad: false
 distloss: false

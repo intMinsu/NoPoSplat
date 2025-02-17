@@ -87,10 +87,10 @@ class PixelwiseTaskWithDPT(nn.Module):
         self.depth_mode = depth_mode
         self.conf_mode = conf_mode
 
-        column = ["output_width_ratio", "num_channels"]
-        data = [[str(output_width_ratio), str(num_channels)]]
-        wandb_logger = WandbLoggerManager.get_logger()
-        wandb_logger.log_text(key="dpt_head", columns=column, data=data)
+        # column = ["output_width_ratio", "num_channels"]
+        # data = [[str(output_width_ratio), str(num_channels)]]
+        # wandb_logger = WandbLoggerManager.get_logger()
+        # wandb_logger.log_text(key="dpt_head", columns=column, data=data)
 
         assert n_cls_token == 0, "Not implemented"
         dpt_args = dict(output_width_ratio=output_width_ratio,
